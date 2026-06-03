@@ -1,0 +1,442 @@
+```mermaid
+erDiagram
+
+%% =========================================================
+%% MULTI TENANT IAM
+%% =========================================================
+
+TENANTS {
+  uuid id PK
+  string name
+  string slug
+  string deployment_mode
+  string status
+  timestamp created_at
+  timestamp updated_at
+}
+
+ORGANIZATIONS {
+  uuid id PK
+  uuid tenant_id FK
+  string name
+  string type
+  string status
+  timestamp created_at
+}
+
+USERS {
+  uuid id PK
+  uuid tenant_id FK
+  uuid organization_id FK
+  string first_name
+  string last_name
+  string email
+  string password_hash
+  string status
+  boolean mfa_enabled
+  timestamp last_login_at
+  timestamp created_at
+}
+
+ROLES {
+  uuid id PK
+  uuid tenant_id FK
+  string name
+  string slug
+  string description
+  boolean system_role
+  timestamp created_at
+}
+
+PERMISSIONS {
+  uuid id PK
+  string resource
+  string action
+  string scope
+  string description
+}
+
+ROLE_PERMISSIONS {
+  uuid id PK
+  uuid role_id FK
+  uuid permission_id FK
+}
+
+USER_ROLES {
+  uuid id PK
+  uuid user_id FK
+  uuid role_id FK
+}
+
+API_KEYS {
+  uuid id PK
+  uuid tenant_id FK
+  uuid created_by FK
+  string key_hash
+  string type
+  timestamp expires_at
+  boolean revoked
+}
+
+%% =========================================================
+%% REGISTRIES
+%% =========================================================
+
+UOPS {
+  uuid id PK
+  uuid tenant_id FK
+  string code
+  string name
+  string category
+  text description
+  timestamp created_at
+}
+
+PROCESSES {
+  uuid id PK
+  uuid tenant_id FK
+  uuid uop_id FK
+  string name
+  string process_type
+  string status
+  timestamp created_at
+}
+
+AGENTS {
+  uuid id PK
+  uuid tenant_id FK
+  uuid process_id FK
+  string name
+  string vendor
+  string runtime
+  string version
+  string trust_tier
+  string status
+  timestamp created_at
+}
+
+AGENT_CONTRACTS {
+  uuid id PK
+  uuid tenant_id FK
+  uuid agent_id FK
+  string contract_version
+  jsonb policy_reference
+  jsonb capabilities
+  timestamp issued_at
+  timestamp expires_at
+}
+
+%% =========================================================
+%% TELEMETRY
+%% =========================================================
+
+SPANS {
+  uuid id PK
+  uuid tenant_id FK
+  uuid agent_id FK
+  uuid process_id FK
+  uuid uop_id FK
+  string trace_id
+  string span_id
+  string vendor
+  string span_role
+  decimal latency_ms
+  integer token_count
+  decimal inference_cost_usd
+  decimal predicted_cost_usd
+  decimal predicted_outcome_value_usd
+  jsonb raw_payload
+  timestamp created_at
+}
+
+OBSERVATION_EVENTS {
+  uuid id PK
+  uuid tenant_id FK
+  uuid span_id FK
+  uuid decision_id FK
+  string event_type
+  jsonb technical_metrics
+  jsonb economic_metrics
+  jsonb hallucination_scores
+  timestamp observed_at
+}
+
+%% =========================================================
+%% PEL / LEDGER
+%% =========================================================
+
+DECISIONS {
+  uuid id PK
+  uuid tenant_id FK
+  uuid agent_id FK
+  uuid process_id FK
+  uuid uop_id FK
+  string decision_key
+  string execution_path
+  timestamp executed_at
+}
+
+LEDGER_ROWS {
+  uuid id PK
+  uuid tenant_id FK
+  uuid decision_id FK
+  uuid predicted_signature_id FK
+  uuid actual_signature_id FK
+
+  decimal predicted_pnl
+  decimal actual_pnl
+  decimal variance_amount
+
+  decimal capability_fit_score
+  decimal gsti_score
+  decimal uop_value
+  decimal coordination_tax
+  decimal governance_score
+  decimal runtime_fit
+  decimal economic_value
+  decimal risk_penalty
+
+  string attribution_bucket
+  string correction_type
+
+  boolean sealed
+  timestamp sealed_at
+  timestamp created_at
+}
+
+ACTUAL_OUTCOMES {
+  uuid id PK
+  uuid tenant_id FK
+  uuid ledger_row_id FK
+  string sor_source
+  decimal actual_value
+  jsonb source_payload
+  timestamp received_at
+}
+
+ATTRIBUTIONS {
+  uuid id PK
+  uuid tenant_id FK
+  uuid ledger_row_id FK
+  string bucket
+  decimal confidence_score
+  text explanation
+}
+
+CORRECTIONS {
+  uuid id PK
+  uuid tenant_id FK
+  uuid ledger_row_id FK
+  string correction_mode
+  string correction_action
+  string propagation_status
+  timestamp executed_at
+}
+
+%% =========================================================
+%% WRITEBACK / DELTAS
+%% =========================================================
+
+WRITEBACK_DELTAS {
+  uuid id PK
+  uuid tenant_id FK
+  uuid ledger_row_id FK
+  string delta_type
+  decimal delta_value
+  string acknowledgement_status
+  string idempotency_key
+  timestamp acknowledged_at
+}
+
+SIGNAL_BUS_EVENTS {
+  uuid id PK
+  uuid tenant_id FK
+  uuid delta_id FK
+  string partition_key
+  string event_status
+  jsonb payload
+  timestamp created_at
+}
+
+%% =========================================================
+%% GOVERNANCE
+%% =========================================================
+
+BOUNDARIES {
+  uuid id PK
+  uuid tenant_id FK
+  string vendor
+  string context
+  jsonb rules
+  timestamp created_at
+}
+
+POLICY_PACKS {
+  uuid id PK
+  uuid tenant_id FK
+  string framework
+  string version
+  string status
+  jsonb policies
+}
+
+SKILL_AUTHORITIES {
+  uuid id PK
+  uuid tenant_id FK
+  string skill_name
+  decimal drift_threshold
+  decimal tolerance_threshold
+  jsonb allowed_paths
+  timestamp updated_at
+}
+
+EVALUATIONS {
+  uuid id PK
+  uuid tenant_id FK
+  uuid ledger_row_id FK
+  uuid boundary_id FK
+  uuid policy_pack_id FK
+  string evaluation_result
+  jsonb findings
+  timestamp evaluated_at
+}
+
+%% =========================================================
+%% ATTESTATION
+%% =========================================================
+
+ATTESTATIONS {
+  uuid id PK
+  uuid tenant_id FK
+  string framework
+  string scope
+  timestamp window_start
+  timestamp window_end
+  string signature_mode
+  string status
+  timestamp generated_at
+}
+
+ATTESTATION_RECORDS {
+  uuid id PK
+  uuid attestation_id FK
+  uuid ledger_row_id FK
+}
+
+SIGNATURES {
+  uuid id PK
+  uuid tenant_id FK
+  string signer
+  string kms_provider
+  string algorithm
+  text signature_hash
+  timestamp signed_at
+}
+
+AUDIT_EXPORTS {
+  uuid id PK
+  uuid tenant_id FK
+  uuid attestation_id FK
+  string export_format
+  string storage_path
+  timestamp exported_at
+}
+
+%% =========================================================
+%% RECOMMENDATIONS
+%% =========================================================
+
+RECOMMENDATIONS {
+  uuid id PK
+  uuid tenant_id FK
+  uuid ledger_row_id FK
+  string recommendation_type
+  text current_state
+  text proposed_state
+  decimal predicted_delta
+  decimal confidence_score
+  string status
+  timestamp created_at
+}
+
+RECOMMENDATION_ADOPTIONS {
+  uuid id PK
+  uuid recommendation_id FK
+  uuid adopted_by FK
+  string adoption_status
+  text feedback
+  timestamp actioned_at
+}
+
+%% =========================================================
+%% CONNECTORS
+%% =========================================================
+
+CONNECTORS {
+  uuid id PK
+  uuid tenant_id FK
+  string connector_type
+  string provider
+  string auth_mode
+  boolean active
+  timestamp created_at
+}
+
+CONNECTOR_CREDENTIALS {
+  uuid id PK
+  uuid connector_id FK
+  string secret_ref
+  timestamp rotated_at
+}
+
+%% =========================================================
+%% RELATIONSHIPS
+%% =========================================================
+
+TENANTS ||--o{ ORGANIZATIONS : owns
+TENANTS ||--o{ USERS : owns
+TENANTS ||--o{ ROLES : owns
+TENANTS ||--o{ UOPS : owns
+TENANTS ||--o{ PROCESSES : owns
+TENANTS ||--o{ AGENTS : owns
+TENANTS ||--o{ CONNECTORS : owns
+
+ORGANIZATIONS ||--o{ USERS : contains
+
+USERS ||--o{ USER_ROLES : assigned
+ROLES ||--o{ USER_ROLES : maps
+ROLES ||--o{ ROLE_PERMISSIONS : grants
+PERMISSIONS ||--o{ ROLE_PERMISSIONS : assigned
+
+UOPS ||--o{ PROCESSES : groups
+PROCESSES ||--o{ AGENTS : executes
+
+AGENTS ||--o{ AGENT_CONTRACTS : governed_by
+AGENTS ||--o{ SPANS : emits
+AGENTS ||--o{ DECISIONS : makes
+
+DECISIONS ||--|| LEDGER_ROWS : creates
+SPANS ||--o{ OBSERVATION_EVENTS : generates
+
+LEDGER_ROWS ||--o{ ACTUAL_OUTCOMES : reconciles
+LEDGER_ROWS ||--o{ ATTRIBUTIONS : classifies
+LEDGER_ROWS ||--o{ CORRECTIONS : corrected_by
+LEDGER_ROWS ||--o{ WRITEBACK_DELTAS : emits
+LEDGER_ROWS ||--o{ RECOMMENDATIONS : drives
+
+WRITEBACK_DELTAS ||--o{ SIGNAL_BUS_EVENTS : publishes
+
+BOUNDARIES ||--o{ EVALUATIONS : validates
+POLICY_PACKS ||--o{ EVALUATIONS : applies
+LEDGER_ROWS ||--o{ EVALUATIONS : evaluated
+
+ATTESTATIONS ||--o{ ATTESTATION_RECORDS : contains
+LEDGER_ROWS ||--o{ ATTESTATION_RECORDS : included
+
+SIGNATURES ||--o{ LEDGER_ROWS : signs
+SIGNATURES ||--o{ ATTESTATIONS : signs
+
+RECOMMENDATIONS ||--o{ RECOMMENDATION_ADOPTIONS : tracked
+
+CONNECTORS ||--|| CONNECTOR_CREDENTIALS : secures
+```
