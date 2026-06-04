@@ -21,7 +21,8 @@ import { permissionGroups, roles } from "@/mocks/roles";
 import api from "@/features/api/axios";
 import { useParams } from "react-router-dom";
 import { useSnackbar } from "notistack";
-import { getPermissionsRoleWiseList, CapitalFirstCase } from "@/lib/commonApis";
+import { CapitalFirstCase } from "@/lib/commonFunctions";
+import { getPermissionsRoleWiseList } from "@/lib/commonApis";
 
 
 export default function AddRolePage() {

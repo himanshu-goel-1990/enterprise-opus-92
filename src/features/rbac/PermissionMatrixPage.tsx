@@ -8,7 +8,7 @@ import { Plus, MoreHorizontal, Shield, Search, FilePenLine, Trash2, RefreshCw   
 import api from "@/features/api/axios";
 import { useSnackbar } from "notistack";
 import CommonDialog from "@/features/components/CommonDialog";
-import { getAvatarColor, CapitalFirstCase, setDateFormat } from "@/lib/commonApis";
+import { getAvatarColor, CapitalFirstCase, setDateFormat } from "@/lib/commonFunctions";
 
 
 

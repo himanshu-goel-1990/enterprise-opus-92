@@ -38,7 +38,8 @@ import {
 import api from "@/features/api/axios";
 import { enqueueSnackbar, useSnackbar } from "notistack";
 import CommonDialog from "@/features/components/CommonDialog";
-import { getAvatarColor, getAllPoicies } from "@/lib/commonApis";
+import { getAvatarColor } from "@/lib/commonFunctions";
+import { getAllPoicies } from "@/lib/commonApis";
 
 const emptyPolicy = (): Policy => ({
     id: "",

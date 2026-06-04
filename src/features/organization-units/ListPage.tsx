@@ -1,24 +1,32 @@
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import {
   Box,
-  Grid,
-  Card,
   Stack,
   Avatar,
   Typography,
   Chip,
-  Button,
   IconButton,
-  Switch,
+  Button,
   TextField,
   InputAdornment,
   MenuItem,
   ToggleButtonGroup,
+  ToggleButton,
+  Grid,
+  Switch,
 } from "@mui/material";
-import { SectionCard } from "@/components/common/SectionCard";
+import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
+import { type GridColDef } from "@mui/x-data-grid";
 import { PageHeader } from "@/components/common/PageHeader";
-import { roles } from "@/mocks/roles";
+import { SectionCard } from "@/components/common/SectionCard";
+import { DataTable } from "@/components/common/DataTable";
+import Badge from "react-bootstrap/Badge";
+import { mockOrgs } from "@/mocks/organizations";
+import { formatCurrency, formatNumber, formatDate } from "@/lib/date";
+import api from "@/features/api/axios";
+import { getAllOrg } from "@/lib/commonApis";
+import { getAvatarColor, setDateFormat, CapitalFirstCase } from "@/lib/commonFunctions";
 import { Plus, Trash2, FilePenLine, MoreHorizontal, Shield, Search, RefreshCw } from "lucide-react";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
@@ -27,32 +35,25 @@ import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import Paper from "@mui/material/Paper";
-import api from "@/features/api/axios";
 import { useSnackbar } from "notistack";
 import CommonDialog from "@/features/components/CommonDialog";
-import { getAllRoles } from "@/lib/commonApis";
-import { getAvatarColor, CapitalFirstCase, setDateFormat } from "@/lib/commonFunctions";
 
 
-export default function RolesListPage() {
-  const [records, setRecords] = useState([]);
-  const { enqueueSnackbar } = useSnackbar();
-  const [confirmId, setConfirmId] = useState<string | null>(null);
-  const [open, setOpen] = useState(false);
+
+export default function OrganizationsListPage() {
   const [q, setQ] = useState("");
   const [plan, setPlan] = useState("all");
+  const [records, setRecords] = useState([]);
+  const [view, setView] = useState<"table" | "grid">("table");
+  const [confirmId, setConfirmId] = useState<string | null>(null);
+  const [open, setOpen] = useState(false);
 
   useEffect(() => {
-    getRolesList();
+    getOrgList();
   }, []);
 
-  const refreshData = () => {
-    getRolesList();
-  };
-
-  const getRolesList = async () => {
-    const body = {};
-    const res = await getAllRoles();
+  const getOrgList = async () => {
+    const res = await getAllOrg();
     if (res.success) {
       setRecords(res.data);
     }
@@ -73,7 +74,7 @@ export default function RolesListPage() {
 
   const remove = async () => {
     if (!confirmId) return;
-    const res = await api.delete(`/rbac/roles/delete/${confirmId}`);
+    const res = await api.delete(`/organizations/delete/${confirmId}`);
     if (res.data.success) {
       setRecords((p) => p.filter((a) => a.id !== confirmId));
       enqueueSnackbar("Role is successfully deleted", { variant: "success" });
@@ -89,23 +90,24 @@ export default function RolesListPage() {
     setConfirmId(id);
   };
 
+  const refreshData = () => {
+    getOrgList();
+  };
+
   return (
     <Box>
       <PageHeader
-        title="Roles"
-        subtitle="Define what people can do across organizations and teams"
+        title="Organizations"
+        subtitle={`${records.length} organizations across your tenants`}
         actions={
           <>
             <Button onClick={refreshData} variant="contained">
               <RefreshCw />
             </Button>
-            <Link to="/rbac/roles/new">
+            <Link to="/organizations/new">
               <Button startIcon={<Plus size={16} />} variant="contained">
-                Create role
+                Create organization
               </Button>
-            </Link>
-            <Link to="/rbac/permissions">
-              <Button variant="contained">Permissions</Button>
             </Link>
           </>
         }
@@ -151,16 +153,18 @@ export default function RolesListPage() {
             <Table sx={{ minWidth: 650 }} aria-label="simple table">
               <TableHead>
                 <TableRow>
-                  <TableCell>Role Name</TableCell>
-                  <TableCell>Scope</TableCell>
-                  <TableCell>Description</TableCell>
+                  <TableCell>Name</TableCell>
+                  <TableCell>Status</TableCell>
                   <TableCell>Created At</TableCell>
                   <TableCell>Actions</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
                 {records.map((row) => (
-                  <TableRow key={row.id} sx={{ "&:last-child td, &:last-child th": { border: 0 } }}>
+                  <TableRow
+                    key={row.name}
+                    sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
+                  >
                     <TableCell component="td" scope="row">
                       <Stack direction="row" spacing={1.5} alignItems="center">
                         <Avatar
@@ -179,7 +183,7 @@ export default function RolesListPage() {
                             variant="body2"
                             fontWeight={600}
                             component={Link}
-                            to={`/rbac/roles/edit/${row.id}`}
+                            to={`/organizations/edit/${row.id}`}
                             sx={{ color: "text.primary", "&:hover": { color: "primary.main" } }}
                           >
                             {row.name}
@@ -190,11 +194,18 @@ export default function RolesListPage() {
                         </Box>
                       </Stack>
                     </TableCell>
-                    <TableCell>{CapitalFirstCase(row.scope)}</TableCell>
-                    <TableCell>{row.description}</TableCell>
+                    <TableCell>
+                      {CapitalFirstCase(row.status)}
+                      <Switch
+                        color="success"
+                        checked={row.status == "active" ? true : false}
+                        onChange={(e) => handleStatusChange(row.id, e.target.checked)}
+                        slotProps={{ input: { "aria-label": "controlled" } }}
+                      />
+                    </TableCell>
                     <TableCell>{setDateFormat(row.created_at)}</TableCell>
                     <TableCell>
-                      <Link to={`/rbac/roles/edit/${row.id}`}>
+                      <Link to={`/organizations/edit/${row.id}`}>
                         <button
                           type="button"
                           className="p-2 m-2 btn btn-primary rounded text-red-500 hover:bg-red-100"
@@ -221,7 +232,7 @@ export default function RolesListPage() {
       <CommonDialog
         open={open}
         onClose={() => setOpen(false)}
-        title="Delete Role"
+        title="Delete Organization"
         maxWidth="xs"
         actions={
           <>

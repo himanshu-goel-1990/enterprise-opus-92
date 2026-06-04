@@ -14,6 +14,7 @@ import {
   ToggleButton,
   Grid,
   Switch,
+  Tooltip
 } from "@mui/material";
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
@@ -25,8 +26,20 @@ import Badge from "react-bootstrap/Badge";
 import { mockOrgs } from "@/mocks/organizations";
 import { formatCurrency, formatNumber, formatDate } from "@/lib/date";
 import api from "@/features/api/axios";
-import { getAllOrg, getAvatarColor, setDateFormat, CapitalFirstCase } from "@/lib/commonApis";
-import { Plus, Trash2, FilePenLine, MoreHorizontal, Shield, Search, RefreshCw } from "lucide-react";
+import { getAllOrg } from "@/lib/commonApis";
+import { getAvatarColor, setDateFormat, CapitalFirstCase } from "@/lib/commonFunctions";
+import {
+  Plus,
+  Trash2,
+  FilePenLine,
+  MoreHorizontal,
+  Shield,
+  Search,
+  RefreshCw,
+  UsersRound,
+  BadgeCheck,
+  BadgeAlert
+} from "lucide-react";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
 import TableCell from "@mui/material/TableCell";
@@ -36,8 +49,6 @@ import TableRow from "@mui/material/TableRow";
 import Paper from "@mui/material/Paper";
 import { useSnackbar } from "notistack";
 import CommonDialog from "@/features/components/CommonDialog";
-
-
 
 export default function OrganizationsListPage() {
   const [q, setQ] = useState("");
@@ -153,8 +164,10 @@ export default function OrganizationsListPage() {
               <TableHead>
                 <TableRow>
                   <TableCell>Name</TableCell>
+                  <TableCell>Domain Details</TableCell>
                   <TableCell>Status</TableCell>
                   <TableCell>Created At</TableCell>
+                  <TableCell>Updated At</TableCell>
                   <TableCell>Actions</TableCell>
                 </TableRow>
               </TableHead>
@@ -194,6 +207,12 @@ export default function OrganizationsListPage() {
                       </Stack>
                     </TableCell>
                     <TableCell>
+                      {row.domain} &nbsp;&nbsp;
+                      {
+                        row.domain_verified ? <BadgeCheck color={"green"} size={16} /> : <BadgeAlert color={"red"} size={16} />
+                      }
+                    </TableCell>
+                    <TableCell>
                       {CapitalFirstCase(row.status)}
                       <Switch
                         color="success"
@@ -203,23 +222,44 @@ export default function OrganizationsListPage() {
                       />
                     </TableCell>
                     <TableCell>{setDateFormat(row.created_at)}</TableCell>
+                    <TableCell>{setDateFormat(row.updated_at)}</TableCell>
                     <TableCell>
                       <Link to={`/organizations/edit/${row.id}`}>
-                        <button
-                          type="button"
-                          className="p-2 m-2 btn btn-primary rounded text-red-500 hover:bg-red-100"
-                        >
-                          <FilePenLine size={16} />
-                        </button>
+                        <Tooltip title="Edit" placement="top">
+                          <IconButton
+                            type="button"
+                            className="p-2 m-1 btn btn-primary rounded text-red-500 hover:bg-red-100"
+                          >
+                            <FilePenLine size={16} />
+                          </IconButton>
+                        </Tooltip>
+                      </Link>
+                      <Link to={`/organizations/members/${row.id}`}>
+                        <Tooltip title="Users" placement="top">
+                          <IconButton
+                            type="button"
+                            sx={{
+                              color: "green",
+                            }}
+                            className="p-2 m-1 btn btn-primary rounded text-red-500 hover:bg-red-100"
+                          >
+                            <UsersRound size={16} />
+                          </IconButton>
+                        </Tooltip>
                       </Link>
 
-                      <button
-                        type="button"
-                        onClick={() => openDelete(row.id)}
-                        className="p-2 rounded btn btn-danger  text-red-500 hover:bg-red-100"
-                      >
-                        <Trash2 size={16} />
-                      </button>
+                      <Tooltip title="Delete" placement="top">
+                        <IconButton
+                          type="button"
+                          sx={{
+                            color: "red",
+                          }}
+                          onClick={() => openDelete(row.id)}
+                          className="p-2 m-1 rounded btn btn-danger text-red-500 hover:bg-red-100"
+                        >
+                          <Trash2 size={16} />
+                        </IconButton>
+                      </Tooltip>
                     </TableCell>
                   </TableRow>
                 ))}

@@ -6,10 +6,6 @@ import { RequireAuth } from "@/guards/RequireAuth";
 import { RequireRole } from "@/guards/RequireRole";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { AuthLayout } from "@/components/layout/AuthLayout";
-import { publicRoutes } from "@/app/routes/public.routes";
-import { usersRoutes } from "@/app/routes/users.routes";
-import { rbacRoutes } from "@/app/routes/rbac.routes";
-import { organizationsRoutes } from "@/app/routes/organizations.routes";
 
 const L = (loader: () => Promise<{ default: React.ComponentType }>) => {
   const Comp = lazy(loader);
@@ -25,7 +21,29 @@ export const router = createBrowserRouter([
   {
     element: <AuthLayout />,
     errorElement: <RouteErrorBoundary />,
-    children: [...publicRoutes],
+    children: [
+      { path: "/login", element: L(() => import("@/features/auth/pages/LoginPage")) },
+      { path: "/register", element: L(() => import("@/features/auth/pages/RegisterPage")) },
+      {
+        path: "/forgot-password",
+        element: L(() => import("@/features/auth/pages/ForgotPasswordPage")),
+      },
+      {
+        path: "/reset-password",
+        element: L(() => import("@/features/auth/pages/ResetPasswordPage")),
+      },
+      { path: "/mfa", element: L(() => import("@/features/auth/pages/MfaPage")) },
+      { path: "/sso", element: L(() => import("@/features/auth/pages/SsoPage")) },
+      { path: "/invite/:token", element: L(() => import("@/features/auth/pages/InvitePage")) },
+      {
+        path: "/session-expired",
+        element: L(() => import("@/features/auth/pages/SessionExpiredPage")),
+      },
+      {
+        path: "/select-organization",
+        element: L(() => import("@/features/auth/pages/SelectOrganizationPage")),
+      },
+    ],
   },
 
   // APP
@@ -37,15 +55,106 @@ export const router = createBrowserRouter([
     ),
     errorElement: <RouteErrorBoundary />,
     children: [
+      { index: true, element: <Navigate to="/dashboard" replace /> },
+      { path: "dashboard", element: L(() => import("@/features/dashboard/DashboardPage")) },
 
-      // organizations routes
-      ...organizationsRoutes,
+      // Organizations
+      {
+        path: "organizations",
+        element: L(() => import("@/features/organizations/ListPage")),
+      },
+      {
+        path: "organizations/new",
+        element: L(() => import("@/features/organizations/AddEditPage")),
+      },
+      {
+        path: "organizations/edit/:orgId",
+        element: L(() => import("@/features/organizations/AddEditPage")),
+      },
+      {
+        path: "organizations/:orgId",
+        element: <Outlet />,
+        children: [
+          { index: true, element: <Navigate to="overview" replace /> },
+          {
+            path: "overview",
+            element: L(() => import("@/features/organizations/OrganizationOverviewPage")),
+          },
+          {
+            path: "hierarchy",
+            element: L(() => import("@/features/organizations/OrganizationHierarchyPage")),
+          },
+          {
+            path: "departments",
+            element: L(() => import("@/features/organizations/OrganizationDepartmentsPage")),
+          },
+          {
+            path: "teams",
+            element: L(() => import("@/features/organizations/OrganizationTeamsPage")),
+          },
+          {
+            path: "branches",
+            element: L(() => import("@/features/organizations/OrganizationBranchesPage")),
+          },
+          {
+            path: "members",
+            element: L(() => import("@/features/organizations/OrganizationMembersPage")),
+          },
+        ],
+      },
 
       // Users
-      ...usersRoutes,
+      { path: "users", element: L(() => import("@/features/users/UsersListPage")) },
+      { path: "users/new", element: L(() => import("@/features/users/AddUserPage")) },
+      { path: "users/edit/:userId", element: L(() => import("@/features/users/AddUserPage")) },
+      {
+        path: "users/:userId",
+        element: L(() => import("@/features/users/UserDetailPage")),
+        children: [
+          { index: true, element: <Navigate to="overview" replace /> },
+          { path: "overview", element: L(() => import("@/features/users/tabs/UserOverviewTab")) },
+          { path: "activity", element: L(() => import("@/features/users/tabs/UserActivityTab")) },
+          {
+            path: "permissions",
+            element: L(() => import("@/features/users/tabs/UserPermissionsTab")),
+          },
+          {
+            path: "organizations",
+            element: L(() => import("@/features/users/tabs/UserOrganizationsTab")),
+          },
+          { path: "teams", element: L(() => import("@/features/users/tabs/UserTeamsTab")) },
+          { path: "devices", element: L(() => import("@/features/users/tabs/UserDevicesTab")) },
+          { path: "sessions", element: L(() => import("@/features/users/tabs/UserSessionsTab")) },
+          { path: "api-keys", element: L(() => import("@/features/users/tabs/UserApiKeysTab")) },
+          {
+            path: "onboarding",
+            element: L(() => import("@/features/users/tabs/UserOnboardingTab")),
+          },
+        ],
+      },
 
       // RBAC
-      ...rbacRoutes,
+      {
+        path: "rbac",
+        element: <Outlet />,
+        children: [
+          { index: true, element: <Navigate to="roles" replace /> },
+          { path: "roles", element: L(() => import("@/features/rbac/RolesListPage")) },
+          { path: "roles/new", element: L(() => import("@/features/rbac/AddRolePage")) },
+          { path: "roles/edit/:roleId", element: L(() => import("@/features/rbac/AddRolePage")) },
+          { path: "permissions", element: L(() => import("@/features/rbac/PermissionMatrixPage")) },
+          {
+            path: "permissions/new",
+            element: L(() => import("@/features/rbac/AddPermissionPage")),
+          },
+          {
+            path: "permissions/groups",
+            element: L(() => import("@/features/rbac/PermissionGroupsPage")),
+          },
+          { path: "scopes", element: L(() => import("@/features/rbac/ScopesPage")) },
+          { path: "policies", element: L(() => import("@/features/rbac/PoliciesListPage")) },
+        ],
+      },
 
       // Billing
       {
