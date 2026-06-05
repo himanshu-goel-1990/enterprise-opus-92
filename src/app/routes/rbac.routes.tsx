@@ -20,7 +20,11 @@ export const rbacRoutes = [
         element: L(() => import("@/features/rbac/PermissionGroupsPage")),
       },
       { path: "scopes", element: L(() => import("@/features/rbac/ScopesPage")) },
+
+
       { path: "policies", element: L(() => import("@/features/rbac/PoliciesListPage")) },
+      { path: "policies/assignments", element: L(() => import("@/features/rbac/PolicyAssignmentListPage")) },
+      { path: "policies/assignments/:poilicyId", element: L(() => import("@/features/rbac/PolicyAssignmentListPage")) },
     ],
   },
 ];

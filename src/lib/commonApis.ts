@@ -37,8 +37,14 @@ export const getPermissionsRoleWiseList = async () => {
 };
 
 // get all policies
-export const getAllPoicies = async () => {
+export const getAllPolicies = async () => {
   const body = {};
   const res = await api.get("/rbac/policies/list", body);
+  return res.data;
+}
+
+export const getAllPolicyAssignments = async () => {
+  const body = {};
+  const res = await api.get("/rbac/policy-assignments/list", body);
   return res.data;
 }

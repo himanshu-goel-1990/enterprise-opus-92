@@ -17,8 +17,6 @@ import { PageHeader } from "@/components/common/PageHeader";
 import { SectionCard } from "@/components/common/SectionCard";
 import { ArrowLeft, Save } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { roles } from "@/mocks/roles";
-import { mockOrgs } from "@/mocks/organizations";
 import api from "@/features/api/axios";
 import { getAllOrg, getAllRoles } from "@/lib/commonApis";
 import { useSnackbar } from "notistack";
@@ -34,10 +32,10 @@ export default function AddUserPage() {
     email: "",
     password: "",
     org_id: "",
-    roleIds: []
+    roleIds: [],
   });
   const [roles, setRoles] = useState([]);
-  const [first_name , setFirstName] = useState("");
+  const [first_name, setFirstName] = useState("");
   const [last_name, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -51,7 +49,7 @@ export default function AddUserPage() {
 
   useEffect(() => {
     getOrgList();
-    getRolesList()
+    getRolesList();
   }, []);
 
   useEffect(() => {
@@ -101,10 +99,9 @@ export default function AddUserPage() {
     const body = data;
     console.log(body);
 
-
     const res = isEditMode
-          ? await api.patch("/users/update/" + userId, body)
-          : await api.post("/users/add", body);
+      ? await api.patch("/users/update/" + userId, body)
+      : await api.post("/users/add", body);
     console.log(res);
     if (res.data.success) {
       enqueueSnackbar(`User added successfully`, { variant: "success" });
@@ -119,6 +116,8 @@ export default function AddUserPage() {
 
   const toggleRole = (id: string) =>
     setRoleIds((p) => (p.includes(id) ? p.filter((r) => r !== id) : [...p, id]));
+
+  const assignedRoleIds = data?.userRoleAssignments?.map(({ role }) => role.id) || [];
 
   return (
     <Box>
@@ -154,7 +153,7 @@ export default function AddUserPage() {
                   required
                   fullWidth
                   label="First Name"
-                  value={data?.first_name || ''}
+                  value={data?.first_name || ""}
                   onChange={(e) => setData({ ...data, first_name: e.target.value })}
                 />
               </Grid>
@@ -163,7 +162,7 @@ export default function AddUserPage() {
                   required
                   fullWidth
                   label="Last Name"
-                  value={data?.last_name || ''}
+                  value={data?.last_name || ""}
                   onChange={(e) => setData({ ...data, last_name: e.target.value })}
                 />
               </Grid>
@@ -173,7 +172,7 @@ export default function AddUserPage() {
                   fullWidth
                   type="email"
                   label="Email"
-                  value={data?.email || ''}
+                  value={data?.email || ""}
                   onChange={(e) => setData({ ...data, email: e.target.value })}
                 />
               </Grid>
@@ -191,7 +190,7 @@ export default function AddUserPage() {
                   required
                   fullWidth
                   label="Password"
-                  value={data?.password || ''}
+                  value={data?.password || ""}
                   onChange={(e) => setData({ ...data, password: e.target.value })}
                 />
               </Grid>
@@ -201,13 +200,13 @@ export default function AddUserPage() {
           <Box mt={2}>
             <SectionCard title="Roles" subtitle="Select one or more roles to assign at creation">
               <Stack direction="row" flexWrap="wrap" gap={1}>
-                {roles.map((r) => (
+                {roles.map((role) => (
                   <Chip
-                    key={r.id}
-                    label={r.name}
-                    onClick={() => toggleRole(r.id)}
-                    color={roleIds.includes(r.id) ? "primary" : "default"}
-                    variant={roleIds.includes(r.id) ? "filled" : "outlined"}
+                    key={role.id}
+                    label={role.name}
+                    onClick={() => toggleRole(role.id)}
+                    color={assignedRoleIds.includes(role.id) ? "primary" : "default"}
+                    variant={assignedRoleIds.includes(role.id) ? "filled" : "outlined"}
                   />
                 ))}
               </Stack>
@@ -222,7 +221,7 @@ export default function AddUserPage() {
                 fullWidth
                 select
                 label="Organization"
-                value={data?.org_id || ''}
+                value={data?.org_id || ""}
                 onChange={(e) => setData({ ...data, org_id: e.target.value })}
               >
                 {orgs &&

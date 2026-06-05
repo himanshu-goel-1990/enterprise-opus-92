@@ -98,7 +98,18 @@ export const navGroups: NavGroup[] = [
           { label: "Scopes", to: "/rbac/scopes", icon: Globe },
         ],
       },
-      { label: "Policies", to: "/rbac/policies", icon: Shield },
+      { 
+        label: "Policies", 
+        to: "", 
+        icon: Shield ,
+        children: [
+          { label: "Policy", to: "/rbac/policies", icon: Key },
+          { label: "Policy Assignment", to: "/rbac/policies/assignments", icon: Webhook },
+          { label: "Logs", to: "/api/logs", icon: FileText },
+          { label: "Rate Limits", to: "/api/rate-limits", icon: Gauge },
+          { label: "Docs", to: "/api/docs", icon: BookOpen },
+        ],
+      },
       {
         label: "API & Keys",
         to: "/api",

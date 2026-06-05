@@ -28,11 +28,22 @@ import DialogTitle from "@mui/material/DialogTitle";
 
 const permissionActions = [
   { label: "Select Action", value: "NOVALUE" },
-  { label: "Manage", value: "MANAGE" },
-  { label: "Create", value: "CREATE" },
-  { label: "Read", value: "READ" },
-  { label: "Update", value: "UPDATE" },
-  { label: "Delete", value: "DELETE" },
+  { label: "List", value: "list" },
+  { label: "Create", value: "create" },
+  { label: "Read", value: "read" },
+  { label: "Update", value: "update" },
+  { label: "Delete", value: "delete" },
+];
+
+const allGroups = [
+  { label: "Users", value: "users" },
+  { label: "Organizations", value: "organizations" },
+  { label: "Roles", value: "roles" },
+  { label: "Permissions", value: "permissions" },
+  { label: "Policies", value: "plicies" },
+  { label: "Workspaces", value: "workspaces" },
+  { label: "Audit", value: "audit" },
+  { label: "Service Accounts", value: "service_accounts" },
 ];
 
 export default function AddPermissionPage() {
@@ -41,6 +52,7 @@ export default function AddPermissionPage() {
   const [groups, setGroups] = useState([]);
   const [action, setAction] = useState(permissionActions[0].value);
   const [key, setKey] = useState();
+  const [name, setName] = useState();
   const [label, setLabel] = useState("");
   const [description, setDescription] = useState("");
   const [risk, setRisk] = useState<"low" | "medium" | "high">("low");
@@ -50,18 +62,18 @@ export default function AddPermissionPage() {
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
-    getGroups();
+    //getGroups();
   }, []);
 
-  const getGroups = async () => {
-    const body = {};
-    const res = await api.get("/rbac/groups/list", body);
-    console.log(res.data.data);
+  // const getGroups = async () => {
+  //   const body = {};
+  //   //const res = await api.get("/rbac/groups/list", body);
+  //   console.log(res.data.data);
 
-    if (res.data.success) {
-      setGroups(res.data.data);
-    }
-  };
+  //   if (res.data.success) {
+  //     setGroups(res.data.data);
+  //   }
+  // };
 
   const handleClickOpen = () => {
     setOpen(true);
@@ -77,6 +89,7 @@ export default function AddPermissionPage() {
       return;
     }
     const body = {
+      name,
       group,
       action,
       description,
@@ -104,7 +117,6 @@ export default function AddPermissionPage() {
       enqueueSnackbar(`Group added successfully`, { variant: "success" });
       setTimeout(() => nav("/rbac/permissions/new"), 700);
       form.reset();
-      getGroups();
       handleClose();
     } else {
       enqueueSnackbar(`${res.data.message}`, { variant: "error" });
@@ -135,13 +147,6 @@ export default function AddPermissionPage() {
                 Permissions
               </Button>
             </Link>
-            <Button
-              onClick={() => handleClickOpen()}
-              variant="contained"
-              startIcon={<Plus size={16} />}
-            >
-              Add Group
-            </Button>
           </>
         }
       />
@@ -158,12 +163,23 @@ export default function AddPermissionPage() {
                   value={group}
                   onChange={(e) => setGroup(e.target.value)}
                 >
-                  {groups &&
-                    groups.map((g) => (
-                      <MenuItem key={g.id} value={g.id}>
-                        {g.name}
+                  {allGroups &&
+                    allGroups.map((g) => (
+                      <MenuItem key={g.value} value={g.value}>
+                        {g.label}
                       </MenuItem>
                     ))}
+                </TextField>
+              </Grid>
+            </Grid>
+            <Grid container spacing={2} className="m-4">
+              <Grid item size={12} xs={12}>
+                <TextField
+                  fullWidth
+                  label="Name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                >
                 </TextField>
               </Grid>
             </Grid>

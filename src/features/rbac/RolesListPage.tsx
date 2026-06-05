@@ -13,7 +13,7 @@ import {
   TextField,
   InputAdornment,
   MenuItem,
-  ToggleButtonGroup,
+  Tooltip,
 } from "@mui/material";
 import { SectionCard } from "@/components/common/SectionCard";
 import { Link } from "react-router-dom";
@@ -32,7 +32,6 @@ import { useSnackbar } from "notistack";
 import CommonDialog from "@/features/components/CommonDialog";
 import { getAllRoles } from "@/lib/commonApis";
 import { getAvatarColor, CapitalFirstCase, setDateFormat } from "@/lib/commonFunctions";
-
 
 export default function RolesListPage() {
   const [records, setRecords] = useState([]);
@@ -117,7 +116,7 @@ export default function RolesListPage() {
           sx={{ p: 2, borderBottom: 1, borderColor: "divider", alignItems: "center" }}
         >
           <TextField
-            placeholder="Search organizations…"
+            placeholder="Search roles..."
             value={q}
             onChange={(e) => setQ(e.target.value)}
             size="small"
@@ -194,22 +193,28 @@ export default function RolesListPage() {
                     <TableCell>{row.description}</TableCell>
                     <TableCell>{setDateFormat(row.created_at)}</TableCell>
                     <TableCell>
-                      <Link to={`/rbac/roles/edit/${row.id}`}>
-                        <button
-                          type="button"
-                          className="p-2 m-2 btn btn-primary rounded text-red-500 hover:bg-red-100"
-                        >
-                          <FilePenLine size={16} />
-                        </button>
+                      <Link to={`/roles/edit/${row.id}`}>
+                        <Tooltip title="Edit" placement="top">
+                          <IconButton
+                            type="button"
+                            className="p-2 m-1 btn btn-primary rounded text-red-500 hover:bg-red-100"
+                          >
+                            <FilePenLine size={16} />
+                          </IconButton>
+                        </Tooltip>
                       </Link>
-
-                      <button
-                        type="button"
-                        onClick={() => openDelete(row.id)}
-                        className="p-2 rounded btn btn-danger  text-red-500 hover:bg-red-100"
-                      >
-                        <Trash2 size={16} />
-                      </button>
+                      <Tooltip title="Delete" placement="top">
+                        <IconButton
+                          type="button"
+                          sx={{
+                            color: "red",
+                          }}
+                          onClick={() => openDelete(row.id)}
+                          className="p-2 m-1 rounded btn btn-danger text-red-500 hover:bg-red-100"
+                        >
+                          <Trash2 size={16} />
+                        </IconButton>
+                      </Tooltip>
                     </TableCell>
                   </TableRow>
                 ))}
